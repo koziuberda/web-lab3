@@ -40,6 +40,7 @@ class RequestHelper {
 
     // do something great with this precious data
     console.log(data);
+    errorMessage.set("");
     return data;
   }
 
@@ -60,6 +61,7 @@ class RequestHelper {
 
     // do something great with this precious data
     console.log(data);
+    errorMessage.set("");
     return data;
   }
 }

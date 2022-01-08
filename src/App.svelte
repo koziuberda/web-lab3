@@ -87,15 +87,18 @@
         <input placeholder="Input todo title" bind:value={todoInfo.title} />
         <button on:click={addtodo}>Add new todo</button>
       </div>
-
-      {#each $todos.data.todo as todo (todo.id)}
-        <div>
-          <p>todo name: {todo.title}</p>
-          <p>Author: {todo.user_id ?? "Todo has no author"}</p>
-          <button on:click={() => deletetodo(todo.id)}>Delete todo</button>
-          <hr />
-        </div>
-      {/each}
+      {#if $todos.data.todo.length}
+        {#each $todos.data.todo as todo (todo.id)}
+          <div>
+            <p>todo name: {todo.title}</p>
+            <p>Author: {todo.user_id ?? "Todo has no author"}</p>
+            <button on:click={() => deletetodo(todo.id)}>Delete todo</button>
+            <hr />
+          </div>
+        {/each}
+      {:else}
+        <h1>No todos here! Create one first</h1>
+      {/if}
     {/if}
   {:else}
     <h1>You are offline</h1>
