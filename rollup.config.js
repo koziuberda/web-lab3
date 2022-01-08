@@ -4,7 +4,9 @@ import resolve from "@rollup/plugin-node-resolve";
 import livereload from "rollup-plugin-livereload";
 import { terser } from "rollup-plugin-terser";
 import css from "rollup-plugin-css-only";
-
+import { config } from "dotenv";
+import replace from "@rollup/plugin-replace";
+config();
 const production = !process.env.ROLLUP_WATCH;
 
 function serve() {
@@ -41,6 +43,11 @@ export default {
     file: "public/build/bundle.js",
   },
   plugins: [
+    replace({
+      X_HASURA_ADMIN_SECRET: JSON.stringify(process.env.X_HASURA_ADMIN_SECRET),
+      HTTP_API_LINK: JSON.stringify(process.env.HTTP_API_LINK),
+      WS_API_LINK: JSON.stringify(process.env.WS_API_LINK),
+    }),
     svelte({
       compilerOptions: {
         // enable run-time checks when not in production

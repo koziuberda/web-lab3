@@ -22,9 +22,9 @@ export default class OperationDocsStore {
     `;
   }
 
-  static deleteByName(name) {
+  static deleteById(id) {
     return `mutation MyMutation {
-      delete_todo(where: {title: {_eq: "${name}"}}) {
+      delete_todo(where: {id: {_eq: "${id}"}}) {
         affected_rows
       }
     }`;

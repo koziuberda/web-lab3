@@ -7,6 +7,7 @@
   import { WebSocketLink } from "@apollo/client/link/ws";
   import { getMainDefinition } from "@apollo/client/utilities";
   import { writable } from "svelte/store";
+  import { errorMessage, requestCounter } from "./store";
 
   const offline = writable(false);
   window.onoffline = () => {
@@ -15,17 +16,20 @@
   window.ononline = () => {
     offline.set(false);
   };
+
+  const todoInfo = {};
+
   function createApolloClient() {
     const headers = {
-      "x-hasura-admin-secret": "secret",
+      "x-hasura-admin-secret": X_HASURA_ADMIN_SECRET,
     };
     const httpLink = new HttpLink({
-      uri: "https://web-lab35.herokuapp.com/v1/graphql",
+      uri: HTTP_API_LINK,
       headers,
     });
     const cache = new InMemoryCache();
     const wsLink = new WebSocketLink({
-      uri: "wss://web-lab35.herokuapp.com/v1/graphql",
+      uri: WS_API_LINK,
       options: {
         reconnect: true,
         connectionParams: {
@@ -55,33 +59,40 @@
   const todos = subscribe(OperationDocsStore.subscribeToAll());
 
   const addtodo = async () => {
-    const title = prompt("Title?") || "";
-    await http.startExecuteMyMutation(OperationDocsStore.addOne(title));
+    const { title } = todoInfo;
+    try {
+      await http.startExecuteMyMutation(OperationDocsStore.addOne(title));
+    } catch (e) {
+      errorMessage.set(e.message);
+    }
   };
 
-  const deletetodo = async () => {
-    const title = prompt("which todo to delete?") || "";
-    if (title) {
-      await http.startExecuteMyMutation(OperationDocsStore.deleteByName(title));
-      // heroes.update(n => n.filter(hero => hero.name!==name))
+  const deletetodo = async (id) => {
+    try {
+      await http.startExecuteMyMutation(OperationDocsStore.deleteById(id));
+    } catch (e) {
+      errorMessage.set(e.message);
     }
   };
 </script>
 
 <main>
   {#if !$offline}
-    {#if $todos.loading}
+    {#if $todos.loading || $requestCounter}
       <h1>Loading...</h1>
-    {:else if $todos.error}
-      <h1>{$todos.error}</h1>
+    {:else if $todos.error || $errorMessage}
+      <h1>{$todos.error || $errorMessage}</h1>
     {:else}
-      <button on:click={addtodo}>Add new todo</button>
-      <button on:click={deletetodo}>Delete todo</button>
+      <div>
+        <input placeholder="Input todo title" bind:value={todoInfo.title} />
+        <button on:click={addtodo}>Add new todo</button>
+      </div>
 
-      {#each $todos.data.todo as todo}
+      {#each $todos.data.todo as todo (todo.id)}
         <div>
           <p>todo name: {todo.title}</p>
-          <p>user id: {todo.user_id}</p>
+          <p>Author: {todo.user_id ?? "Todo has no author"}</p>
+          <button on:click={() => deletetodo(todo.id)}>Delete todo</button>
           <hr />
         </div>
       {/each}
