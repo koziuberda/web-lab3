@@ -11,10 +11,10 @@
 
   const offline = writable(false);
   window.onoffline = () => {
-    offline.set(true);
+    $offline = true;
   };
   window.ononline = () => {
-    offline.set(false);
+    $offline = false;
   };
 
   const todoInfo = {};
@@ -27,7 +27,19 @@
       uri: HTTP_API_LINK,
       headers,
     });
-    const cache = new InMemoryCache();
+    const cache = new InMemoryCache({
+      typePolicies: {
+        Subscription: {
+          fields: {
+            todo: {
+              merge(existing, incoming) {
+                return incoming;
+              },
+            },
+          },
+        },
+      },
+    });
     const wsLink = new WebSocketLink({
       uri: WS_API_LINK,
       options: {
@@ -63,7 +75,7 @@
     try {
       await http.startExecuteMyMutation(OperationDocsStore.addOne(title));
     } catch (e) {
-      errorMessage.set(e.message);
+      $errorMessage = e.message;
     }
   };
 
@@ -71,7 +83,7 @@
     try {
       await http.startExecuteMyMutation(OperationDocsStore.deleteById(id));
     } catch (e) {
-      errorMessage.set(e.message);
+      $errorMessage = e.message;
     }
   };
 </script>
@@ -91,7 +103,6 @@
         {#each $todos.data.todo as todo (todo.id)}
           <div>
             <p>todo name: {todo.title}</p>
-            <p>Author: {todo.user_id ?? "Todo has no author"}</p>
             <button on:click={() => deletetodo(todo.id)}>Delete todo</button>
             <hr />
           </div>

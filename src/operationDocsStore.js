@@ -6,7 +6,6 @@ export default class OperationDocsStore {
       todo {
         id
         title
-        user_id
       }
     }`;
   }
@@ -16,7 +15,6 @@ export default class OperationDocsStore {
       insert_todo_one(object: {title: "${name}"}) {
         id
         title
-        user_id
       }
     }
     `;
@@ -36,7 +34,6 @@ export default class OperationDocsStore {
         todo {
           id
           title
-          user_id
         }
       }
     `;

@@ -20,6 +20,7 @@ class RequestHelper {
 
       return result.json();
     } catch (e) {
+      requestCounter.update((n) => n - 1);
       errorMessage.set(e.message);
     }
   }
