@@ -1,21 +1,24 @@
 <script>
-  import { onMount } from "svelte";
   import http from "./request-helper";
   import OperationDocsStore from "./operationDocsStore";
   import { ApolloClient, InMemoryCache, HttpLink, split } from "@apollo/client";
   import { setClient, subscribe } from "svelte-apollo";
   import { WebSocketLink } from "@apollo/client/link/ws";
   import { getMainDefinition } from "@apollo/client/utilities";
-  import { writable } from "svelte/store";
   import { errorMessage, requestCounter } from "./store";
 
-  const offline = writable(false);
+  let offline = false;
   window.onoffline = () => {
-    $offline = true;
+    offline = true;
   };
   window.ononline = () => {
-    $offline = false;
+    offline = false;
   };
+
+  $: $errorMessage &&
+    setTimeout(() => {
+      $errorMessage = "";
+    }, 5000);
 
   const todoInfo = {};
 
@@ -72,24 +75,16 @@
 
   const addtodo = async () => {
     const { title } = todoInfo;
-    try {
-      await http.startExecuteMyMutation(OperationDocsStore.addOne(title));
-    } catch (e) {
-      $errorMessage = e.message;
-    }
+    await http.startExecuteMyMutation(OperationDocsStore.addOne(title));
   };
 
   const deletetodo = async (id) => {
-    try {
-      await http.startExecuteMyMutation(OperationDocsStore.deleteById(id));
-    } catch (e) {
-      $errorMessage = e.message;
-    }
+    await http.startExecuteMyMutation(OperationDocsStore.deleteById(id));
   };
 </script>
 
 <main>
-  {#if !$offline}
+  {#if !offline}
     {#if $todos.loading || $requestCounter}
       <h1>Loading...</h1>
     {:else if $todos.error || $errorMessage}
@@ -99,7 +94,7 @@
         <input placeholder="Input todo title" bind:value={todoInfo.title} />
         <button on:click={addtodo}>Add new todo</button>
       </div>
-      {#if $todos.data.todo.length}
+      {#if $todos?.data?.todo?.length}
         {#each $todos.data.todo as todo (todo.id)}
           <div>
             <p>todo name: {todo.title}</p>
